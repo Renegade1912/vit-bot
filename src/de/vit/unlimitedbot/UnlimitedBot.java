@@ -1,4 +1,4 @@
-package de.vit.officebot;
+package de.vit.unlimitedbot;
 
 import de.vit.map.Map;
 import de.vitbund.netmaze.connector.Action;
@@ -7,7 +7,7 @@ import de.vitbund.netmaze.info.GameEndInfo;
 import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.RoundInfo;
 
-public class OfficeBot implements IBot {
+public class UnlimitedBot implements IBot {
     private int playerId;
 
     private Map map;

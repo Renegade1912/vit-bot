@@ -1,6 +1,6 @@
 package de.vit.unlimitedbot;
 
-import de.vit.map.Map;
+import de.vit.map.Controller;
 import de.vitbund.netmaze.connector.Action;
 import de.vitbund.netmaze.connector.IBot;
 import de.vitbund.netmaze.info.GameEndInfo;
@@ -9,13 +9,8 @@ import de.vitbund.netmaze.info.RoundInfo;
 
 public class UnlimitedBot implements IBot {
     private int playerId;
-
-    private Map map;
-    private int currentX;
-    private int currentY;
+    private Controller controller;
     private int currentLevel;
-    private int sheets;
-    private int currentRound;
 
     @Override
     public String getName() {
@@ -32,21 +27,14 @@ public class UnlimitedBot implements IBot {
         // Spieler-ID auslesen
         playerId = gameInfo.getPlayerId();
 
-        // Karte initialisieren
-        map = new Map(gameInfo.getSizeX(), gameInfo.getSizeY());
+        // Controller initialisieren
+        controller = new Controller(gameInfo);
 
-        // Startposition auslesen
-        currentX = gameInfo.getStartX();
-        currentY = gameInfo.getStartY();
 
         // Level für Spielregeln auslesen (irgendwie immer 1?)
         currentLevel = gameInfo.getLevel();
 
-        // Anzahl der Formulare ermitteln
-        sheets = gameInfo.getSheets();
 
-        // Rundennummer setzen
-        currentRound = 0;
     }
 
     /**
@@ -57,13 +45,7 @@ public class UnlimitedBot implements IBot {
      */
     @Override
     public Action onNewRound(RoundInfo roundInfo) {
-        currentRound = roundInfo.getRoundNumber();
-        System.out.println("Runde " + currentRound + " beginnt.");
-
-        Action action = new Action();
-        action.moveEast();
-
-        return action;
+        return controller.getNextAction(roundInfo);
     }
 
     /**

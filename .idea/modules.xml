@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/officerobo.iml" filepath="$PROJECT_DIR$/officerobo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/UnlimitedBot.iml" filepath="$PROJECT_DIR$/UnlimitedBot.iml" />
     </modules>
   </component>
 </project>

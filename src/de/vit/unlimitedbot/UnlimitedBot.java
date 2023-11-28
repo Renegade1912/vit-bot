@@ -58,6 +58,7 @@ public class UnlimitedBot implements IBot {
         System.out.println("Spiel zuende!");
         System.out.println("Gewinner: " + gameEndInfo.getWinner());
         System.out.println("Das Spiel dauerte " + gameEndInfo.getRound() + " Runden.");
+        System.exit(0);
     }
 
     @Override

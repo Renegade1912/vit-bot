@@ -8,7 +8,6 @@ import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.RoundInfo;
 
 public class UnlimitedBot implements IBot {
-    private int playerId;
     private Controller controller;
     private int currentLevel;
 
@@ -24,12 +23,8 @@ public class UnlimitedBot implements IBot {
      */
     @Override
     public void onGameStart(GameInfo gameInfo) {
-        // Spieler-ID auslesen
-        playerId = gameInfo.getPlayerId();
-
         // Controller initialisieren
         controller = new Controller(gameInfo);
-
 
         // Level für Spielregeln auslesen (irgendwie immer 1?)
         currentLevel = gameInfo.getLevel();

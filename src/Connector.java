@@ -8,7 +8,7 @@ public class Connector {
         UnlimitedBot bot = new UnlimitedBot();
         NetMazeConnector connector = new NetMazeConnector(bot);
 
-        connector.showConnectionSettingsDialog();
+        // connector.showConnectionSettingsDialog();
 
         connector.play();
     }

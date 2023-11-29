@@ -1,10 +1,5 @@
 package de.vit.models.game;
 
-import de.vit.models.game.GameMapField;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class GameMap {
     public static final int NORTH = 0;
     public static final int EAST = 1;
@@ -16,19 +11,20 @@ public class GameMap {
     private GameMapField currentField;
     private int currentX;
     private int currentY;
-    private List<GameMapField> fields = new ArrayList<>();
+    private GameMapField[][] fields;
 
     public GameMap(int xdim, int ydim, int startX, int startY) {
         this.xdim = xdim;
         this.ydim = ydim;
         this.currentX = startX;
         this.currentY = startY;
+        this.fields = new GameMapField[xdim][ydim];
 
         // print position
         System.out.println("Startposition: " + currentX + ", " + currentY);
 
         // build map
-        for (int i = 0; i <= (xdim * ydim); i++) {
+        for (int i = 0; i < (xdim * ydim); i++) {
             int x = i % xdim;
             int y = i / xdim;
             GameMapField field = new GameMapField(x, y);
@@ -37,7 +33,7 @@ public class GameMap {
                 currentField = field;
             }
 
-            fields.add(field);
+            fields[x][y] = field;
         }
     }
 
@@ -50,26 +46,46 @@ public class GameMap {
     }
 
     public GameMapField getFieldByDirection(Direction direction) {
-        GameMapField desiredField = switch (direction) {
-            case NORTH -> new GameMapField(currentX, currentY - 1);
-            case EAST -> new GameMapField(currentX + 1, currentY);
-            case SOUTH -> new GameMapField(currentX, currentY + 1);
-            case WEST -> new GameMapField(currentX - 1, currentY);
-            case SELF -> new GameMapField(currentX, currentY);
-        };
+        int x, y;
 
-        if (desiredField.getX() < 0) desiredField = new GameMapField(xdim - 1, desiredField.getY());
-        if (desiredField.getX() >= xdim) desiredField = new GameMapField(0, desiredField.getY());
-        if (desiredField.getY() < 0) desiredField = new GameMapField(desiredField.getX(), ydim - 1);
-        if (desiredField.getY() >= ydim) desiredField = new GameMapField(desiredField.getX(), 0);
-
-        for (GameMapField field : fields) {
-            if (field.getX() == desiredField.getX() && field.getY() == desiredField.getY()) {
-                return field;
+        // calculate position of direction
+        switch (direction) {
+            case NORTH -> {
+                x = currentX;
+                y = currentY - 1;
             }
+            case EAST -> {
+                x = currentX + 1;
+                y = currentY;
+            }
+            case SOUTH -> {
+                x = currentX;
+                y = currentY + 1;
+            }
+            case WEST -> {
+                x = currentX - 1;
+                y = currentY;
+            }
+            case SELF -> {
+                x = currentX;
+                y = currentY;
+            }
+            default -> throw new IllegalStateException("Unexpected direction: " + direction);
         }
 
-        return currentField;
+        // check for out of bounds
+        if (x < 0) x = xdim - 1;
+        if (x >= xdim) x = 0;
+        if (y < 0) y = ydim - 1;
+        if (y >= ydim) y = 0;
+
+        GameMapField field = fields[x][y];
+        if (field == null) {
+            System.out.println("Field is null!");
+            return currentField;
+        }
+
+        return field;
     }
 
     public GameMapField getCurrentField() {

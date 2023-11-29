@@ -1,7 +1,6 @@
-package de.vit.map;
+package de.vit.models;
 
 import de.vitbund.netmaze.connector.Action;
-import de.vitbund.netmaze.info.GameEndInfo;
 import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.RoundInfo;
 
@@ -28,7 +27,7 @@ public class Controller {
 
         Action action = new Action();
 
-        System.out.println("Aktuelle Position: " + roundInfo.getCellCurrent().getType());
+        System.out.println("Aktuelle Position: " + roundInfo.getCellCurrent());
 
         return action;
     }

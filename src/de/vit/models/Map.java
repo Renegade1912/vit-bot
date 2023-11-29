@@ -1,4 +1,4 @@
-package de.vit.map;
+package de.vit.models;
 
 public class Map {
     private final int xdim;

@@ -1,6 +1,6 @@
 package de.vit.unlimitedbot;
 
-import de.vit.map.Controller;
+import de.vit.models.Controller;
 import de.vitbund.netmaze.connector.Action;
 import de.vitbund.netmaze.connector.IBot;
 import de.vitbund.netmaze.info.GameEndInfo;
@@ -14,7 +14,7 @@ public class UnlimitedBot implements IBot {
 
     @Override
     public String getName() {
-        return "OfficeBot";
+        return "RoadRunner";
     }
 
     /**
@@ -33,8 +33,6 @@ public class UnlimitedBot implements IBot {
 
         // Level für Spielregeln auslesen (irgendwie immer 1?)
         currentLevel = gameInfo.getLevel();
-
-
     }
 
     /**

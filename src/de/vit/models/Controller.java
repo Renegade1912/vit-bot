@@ -1,7 +1,6 @@
 package de.vit.models;
 
-import de.vit.models.game.GameMap;
-import de.vit.models.game.GameMapField;
+import de.vit.enums.Direction;
 import de.vitbund.netmaze.connector.Action;
 import de.vitbund.netmaze.info.Cell;
 import de.vitbund.netmaze.info.GameInfo;
@@ -13,28 +12,68 @@ import java.util.List;
 
 public class Controller {
     private final int playerId;
-    private final GameMap gameMap;
-    private final boolean isSheetRound;
+    private final int currentLevel;
+    private final Atlas atlas;
     private final int maxSheets;
-    private int seenSheets = 0;
-    private int collectdSheets = 0;
+    private int nextForm;
     private int currentRound;
-    private GameMapField lastMapField;
+    private boolean roundDone = false;
 
     public Controller(GameInfo gameInfo) {
         this.playerId = gameInfo.getPlayerId();
-        this.gameMap = new GameMap(gameInfo.getSizeX(), gameInfo.getSizeY(), gameInfo.getStartX(), gameInfo.getStartY());
-        this.isSheetRound = gameInfo.getSheets() > 0;
+        this.currentLevel = gameInfo.getLevel();
+        this.atlas = new Atlas(gameInfo.getSizeX(), gameInfo.getSizeY(), gameInfo.getStartX(), gameInfo.getStartY());
         this.maxSheets = gameInfo.getSheets();
-
-        // Rundennummer setzen
+        this.nextForm = maxSheets > 0 ? 0 : -1;
         this.currentRound = 0;
+    }
+
+    public int getPlayerId() {
+        return playerId;
+    }
+
+    public boolean isGameDone() {
+        // No form collecting needed
+        if (currentLevel == 1) return true;
+
+        return maxSheets > 0 && nextForm > maxSheets;
+    }
+
+    private void updateGameState(RoundInfo roundInfo) {
+        int result = roundInfo.getResult().getResult();
+
+        // Inform about result, e.g. update map position
+        switch (result) {
+            case Result.NOK -> System.out.println("NOK"); // toDo
+            case Result.NOK_NOTSUPPORTED -> System.out.println("Not supported"); // toDo
+            case Result.NOK_BLOCKED -> System.out.println("Blocked"); // toDo
+            case Result.NOK_NOTYOURS -> System.out.println("Not yours"); // toDo
+            case Result.NOK_EMPTY -> System.out.println("Empty"); // toDo
+            case Result.NOK_WRONGORDER -> System.out.println("Wrong order"); // toDo
+            case Result.NOK_TALKING -> System.out.println("Talking"); // toDo
+            case Result.OK_NORTH -> atlas.updateCurrentField(Direction.NORTH);
+            case Result.OK_EAST -> atlas.updateCurrentField(Direction.EAST);
+            case Result.OK_SOUTH -> atlas.updateCurrentField(Direction.SOUTH);
+            case Result.OK_WEST -> atlas.updateCurrentField(Direction.WEST);
+            case Result.OK_FORM -> nextForm++;
+            case Result.OK_SHEET -> System.out.println("Sheet"); // toDo
+            case Result.OK_FINISH -> System.exit(0);
+        }
+
+        // Bind cells to AtlasFields
+        atlas.setFieldCellByDirection(Direction.NORTH, roundInfo.getCellNorth());
+        atlas.setFieldCellByDirection(Direction.EAST, roundInfo.getCellEast());
+        atlas.setFieldCellByDirection(Direction.SOUTH, roundInfo.getCellSouth());
+        atlas.setFieldCellByDirection(Direction.WEST, roundInfo.getCellWest());
     }
 
     public Action getNextAction(RoundInfo roundInfo) {
         // Inform about round count
         currentRound = roundInfo.getRoundNumber();
-        System.out.println("Runde " + currentRound + " beginnt.");
+        System.out.println("##################### Runde " + currentRound + " beginnt #####################");
+
+        // Update game state
+        updateGameState(roundInfo);
 
         Action action = new Action();
 
@@ -44,55 +83,34 @@ public class Controller {
         // Info about current cell
         Cell cell = roundInfo.getCellCurrent();
 
-        // Update position on map
-        if (currentRound == 1) {
-            lastMapField = gameMap.getCurrentField();
-        } else {
-            switch (result.getResult()) {
-                case Result.OK_NORTH -> {
-                    lastMapField = gameMap.getCurrentField();
-                    gameMap.updateCurrentField(GameMap.Direction.NORTH);
-                }
-                case Result.OK_EAST -> {
-                    lastMapField = gameMap.getCurrentField();
-                    gameMap.updateCurrentField(GameMap.Direction.EAST);
-                }
-                case Result.OK_SOUTH -> {
-                    lastMapField = gameMap.getCurrentField();
-                    gameMap.updateCurrentField(GameMap.Direction.SOUTH);
-                }
-                case Result.OK_WEST -> {
-                    lastMapField = gameMap.getCurrentField();
-                    gameMap.updateCurrentField(GameMap.Direction.WEST);
-                }
-            }
-        }
-
-        if (result.getResult() == Result.OK_FINISH) {
-            // Game ended
-            System.out.println("Spiel erledigt!");
-            System.exit(0);
-        } else if (cell.getType() == Cell.FORM && result.getResult() != Result.NOK_WRONGORDER) {
+        if (cell.getType() == Cell.FORM && result.getResult() != Result.NOK_WRONGORDER) {
             // Take form
+            // @ToDo: Implement form checking
             action.take();
         } else if (cell.getType() == Cell.FINISH) {
             // At finish cell = end game
+            // @ToDo: Implement better can finish checking
             System.out.println("Ziel erreicht!");
             action.finish();
         } else {
             // Get next move
+            // @ToDo: Refactor to remove CellActions
             List<CellAction> cells = new ArrayList<>();
-            cells.add(new CellAction(roundInfo.getCellEast(), GameMap.Direction.EAST));
-            cells.add(new CellAction(roundInfo.getCellNorth(), GameMap.Direction.NORTH));
-            cells.add(new CellAction(roundInfo.getCellSouth(), GameMap.Direction.SOUTH));
-            cells.add(new CellAction(roundInfo.getCellWest(), GameMap.Direction.WEST));
+            cells.add(new CellAction(roundInfo.getCellNorth(), Direction.NORTH));
+            cells.add(new CellAction(roundInfo.getCellEast(), Direction.EAST));
+            cells.add(new CellAction(roundInfo.getCellSouth(), Direction.SOUTH));
+            cells.add(new CellAction(roundInfo.getCellWest(), Direction.WEST));
 
             for (CellAction c : cells) {
                 {
                     Cell handledCell = c.getCell();
-                    GameMapField effectedMapField = gameMap.getFieldByDirection(c.getDirection());
+                    AtlasField affectedMapField = atlas.getFieldByDirection(c.getDirection());
 
-                    if ((handledCell.getType() == Cell.FLOOR || handledCell.getType() == Cell.FINISH) && !effectedMapField.equals(lastMapField)) {
+                    if (handledCell.getType() == Cell.FORM) {
+                        System.out.println(handledCell.getNumber() + " / " + handledCell.getPlayer());
+                    }
+
+                    if ((handledCell.getType() == Cell.FLOOR || handledCell.getType() == Cell.FINISH || handledCell.getType() == Cell.FORM) && !affectedMapField.equals(atlas.getLastField())) {
                         switch (c.getDirection()) {
                             case EAST -> action.moveEast();
                             case NORTH -> action.moveNorth();
@@ -104,7 +122,6 @@ public class Controller {
                 }
             }
         }
-        // action.moveEast();
 
         return action;
     }

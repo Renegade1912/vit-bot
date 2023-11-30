@@ -8,8 +8,7 @@ import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.RoundInfo;
 
 public class UnlimitedBot implements IBot {
-    private Controller controller;
-    private int currentLevel;
+    public static Controller Controller;
 
     @Override
     public String getName() {
@@ -24,10 +23,7 @@ public class UnlimitedBot implements IBot {
     @Override
     public void onGameStart(GameInfo gameInfo) {
         // Controller initialisieren
-        controller = new Controller(gameInfo);
-
-        // Level für Spielregeln auslesen (irgendwie immer 1?)
-        currentLevel = gameInfo.getLevel();
+        Controller = new Controller(gameInfo);
     }
 
     /**
@@ -38,7 +34,7 @@ public class UnlimitedBot implements IBot {
      */
     @Override
     public Action onNewRound(RoundInfo roundInfo) {
-        return controller.getNextAction(roundInfo);
+        return Controller.getNextAction(roundInfo);
     }
 
     /**
@@ -56,7 +52,7 @@ public class UnlimitedBot implements IBot {
 
     @Override
     public void onError(Exception e) {
-        System.out.println("Fehler: " + e.getMessage());
+        System.err.println("Fehler: " + e.getMessage());
     }
 
 

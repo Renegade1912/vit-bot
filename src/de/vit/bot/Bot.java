@@ -1,13 +1,14 @@
-package de.vit.unlimitedbot;
+package de.vit.bot;
 
 import de.vit.models.Controller;
 import de.vitbund.netmaze.connector.Action;
 import de.vitbund.netmaze.connector.IBot;
+import de.vitbund.netmaze.connector.NetMazeConnector;
 import de.vitbund.netmaze.info.GameEndInfo;
 import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.RoundInfo;
 
-public class UnlimitedBot implements IBot {
+public class Bot implements IBot {
     public static Controller Controller;
 
     @Override
@@ -55,5 +56,12 @@ public class UnlimitedBot implements IBot {
         System.err.println("Fehler: " + e.getMessage());
     }
 
+    public static void main(String[] args) {
+        Bot bot = new Bot();
+        NetMazeConnector connector = new NetMazeConnector(bot);
 
+        // connector.showConnectionSettingsDialog();
+
+        connector.play();
+    }
 }

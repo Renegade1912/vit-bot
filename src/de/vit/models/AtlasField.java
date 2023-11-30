@@ -1,6 +1,6 @@
 package de.vit.models;
 
-import de.vit.unlimitedbot.UnlimitedBot;
+import de.vit.bot.Bot;
 import de.vitbund.netmaze.info.Cell;
 
 public class AtlasField {
@@ -39,7 +39,7 @@ public class AtlasField {
     }
 
     public boolean isOwnFinishField() {
-        return cell.getType() == Cell.FINISH && cell.getPlayer() == UnlimitedBot.Controller.getPlayerId();
+        return cell.getType() == Cell.FINISH && cell.getPlayer() == Bot.Controller.getPlayerId();
     }
 
     // @ToDo: is form and get form number

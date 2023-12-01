@@ -11,21 +11,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Controller {
+    // Our player number [1-4]
     private final int playerId;
+    // Current level to determined game rules
     private final int currentLevel;
+    // Our map
     private final Atlas atlas;
+    // Max number of sheets allowed to place
     private final int maxSheets;
-    private int nextForm;
-    private int currentRound;
+    // Current number of form to collect (if needed)
+    private int nextForm = 0;
+    // Current round number
+    private int currentRound = 0;
+    // Current round done (to skip following action checks)
     private boolean roundDone = false;
 
+    /**
+     * Erstelle einen neuen Steuerungs-Controller. für unseren Bot.
+     * Steuert unseren Bot und seine Aktionen / Informationen.
+     *
+     * @param gameInfo GameInfo Informationen über das Spiel
+     */
     public Controller(GameInfo gameInfo) {
         this.playerId = gameInfo.getPlayerId();
         this.currentLevel = gameInfo.getLevel();
         this.atlas = new Atlas(gameInfo.getSizeX(), gameInfo.getSizeY(), gameInfo.getStartX(), gameInfo.getStartY());
         this.maxSheets = gameInfo.getSheets();
-        this.nextForm = maxSheets > 0 ? 0 : -1;
-        this.currentRound = 0;
     }
 
     public int getPlayerId() {
@@ -40,9 +51,10 @@ public class Controller {
     }
 
     private void updateGameState(RoundInfo roundInfo) {
+        // Success/Fail of last action
         int result = roundInfo.getResult().getResult();
 
-        // Inform about result, e.g. update map position
+        // Handle result, e.g. update map position
         switch (result) {
             case Result.NOK -> System.out.println("NOK"); // toDo
             case Result.NOK_NOTSUPPORTED -> System.out.println("Not supported"); // toDo
@@ -60,7 +72,7 @@ public class Controller {
             case Result.OK_FINISH -> System.exit(0);
         }
 
-        // Bind cells to AtlasFields
+        // Bind neighbour cells to AtlasFields
         atlas.setFieldCellByDirection(Direction.NORTH, roundInfo.getCellNorth());
         atlas.setFieldCellByDirection(Direction.EAST, roundInfo.getCellEast());
         atlas.setFieldCellByDirection(Direction.SOUTH, roundInfo.getCellSouth());
@@ -75,6 +87,7 @@ public class Controller {
         // Update game state
         updateGameState(roundInfo);
 
+        // Prepare action
         Action action = new Action();
 
         // Info about last action

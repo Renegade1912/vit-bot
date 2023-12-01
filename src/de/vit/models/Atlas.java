@@ -20,6 +20,14 @@ public class Atlas {
     // Current map field
     private AtlasField currentField;
 
+    /**
+     * Builds a new Map for our Bot.
+     *
+     * @param xdim   x dimension (maximum x coordinate)
+     * @param ydim   y dimension (maximum y coordinate)
+     * @param startX start x coordinate
+     * @param startY start y coordinate
+     */
     public Atlas(int xdim, int ydim, int startX, int startY) {
         this.xdim = xdim;
         this.ydim = ydim;
@@ -51,25 +59,25 @@ public class Atlas {
     }
 
     public AtlasField getFieldByDirection(Direction direction) {
-        Vector2 vector = new Vector2(currentX, currentY);
+        Vector2 coords = new Vector2(currentX, currentY);
 
         // calculate position of direction
         switch (direction) {
-            case NORTH -> vector.y -= 1;
-            case EAST ->  vector.x += 1;
-            case SOUTH -> vector.y += 1;
-            case WEST -> vector.x -= 1;
-            case SELF -> vector = new Vector2(currentX, currentY);
+            case NORTH -> coords.y -= 1;
+            case EAST -> coords.x += 1;
+            case SOUTH -> coords.y += 1;
+            case WEST -> coords.x -= 1;
+            case SELF -> coords = new Vector2(currentX, currentY);
             default -> throw new IllegalStateException("Unexpected direction: " + direction);
         }
 
         // check for out of bounds
-        if (vector.x < 0) vector.x = xdim - 1;
-        if (vector.x >= xdim) vector.x = 0;
-        if (vector.y < 0) vector.y = ydim - 1;
-        if (vector.y >= ydim) vector.y = 0;
+        if (coords.x < 0) coords.x = xdim - 1;
+        if (coords.x >= xdim) coords.x = 0;
+        if (coords.y < 0) coords.y = ydim - 1;
+        if (coords.y >= ydim) coords.y = 0;
 
-        return fields[vector.x][vector.y];
+        return fields[coords.x][coords.y];
     }
 
     public void updateCurrentField(Direction direction) {

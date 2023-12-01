@@ -1,29 +1,27 @@
 package de.vit.models;
 
 import de.vit.bot.Bot;
+import de.vit.models.utils.Vector2;
 import de.vitbund.netmaze.info.Cell;
 
 public class AtlasField {
-    private final int x;
-    private final int y;
+    private final Vector2 coords;
     private int distance = Integer.MAX_VALUE;
     private Cell cell;
 
     public AtlasField(int x, int y) {
-        this.x = x;
-        this.y = y;
+        this.coords = new Vector2(x, y);
     }
 
     public int getX() {
-        return x;
+        return coords.x;
     }
 
     public int getY() {
-        return y;
+        return coords.y;
     }
 
     public int getDistance() {
-    	
         return distance;
     }
 
@@ -45,4 +43,8 @@ public class AtlasField {
 
     // @ToDo: is form and get form number
     // Cell.FORM + Cell.getNumber() [starts at 0] + Cell.getPlayer() [playerId]
+
+    // @ToDo: test if saving cell is needed / a good idea
+
+    // @ToDo: implement own equals method
 }

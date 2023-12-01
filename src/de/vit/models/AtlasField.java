@@ -7,7 +7,7 @@ public class AtlasField {
     private final int x;
     private final int y;
     private int distance = Integer.MAX_VALUE;
-    private Cell cell; //cell type
+    private Cell cell;
 
     public AtlasField(int x, int y) {
         this.x = x;
@@ -21,7 +21,7 @@ public class AtlasField {
     public int getY() {
         return y;
     }
-    //wrong?
+
     public int getDistance() {
     	
         return distance;

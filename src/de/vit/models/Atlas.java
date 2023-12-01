@@ -27,7 +27,7 @@ public class Atlas {
         this.currentY = startY;
         this.fields = new AtlasField[xdim][ydim];
 
-        // build map fields (loop 256 times)
+        // build map fields
         for (int i = 0; i < (xdim * ydim); i++) {
             int x = i % xdim;
             int y = i / xdim;

@@ -170,9 +170,13 @@ public class Atlas {
         AtlasField field = getFieldByDirection(direction);
 
         int type = cell.getType();
-        if (type == Cell.FORM) {
-            field.setFormNumber(cell.getNumber());
-            field.setPlayerId(cell.getPlayer());
+        switch (type) {
+            case Cell.FLOOR, Cell.WALL -> field.setExplored(true);
+            case Cell.FORM -> {
+                field.setFormNumber(cell.getNumber());
+                field.setPlayerId(cell.getPlayer());
+            }
+            case Cell.FINISH -> field.setPlayerId(cell.getPlayer());
         }
 
         field.setType(type);

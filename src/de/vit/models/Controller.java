@@ -19,6 +19,8 @@ public class Controller {
     private final Atlas atlas;
     // Max number of sheets allowed to place
     private final int maxSheets;
+    // Number of forms needed to collect
+    private int neededFormCount = Atlas.FORMS.length;
     // Current number of form to collect (if needed)
     private int nextForm = 0;
     // Current round number
@@ -47,7 +49,7 @@ public class Controller {
         // No form collecting needed
         if (currentLevel == 1) return true;
 
-        return maxSheets > 0 && nextForm > maxSheets;
+        return neededFormCount > 0 && nextForm > neededFormCount;
     }
 
     private void updateGameState(RoundInfo roundInfo) {
@@ -137,5 +139,9 @@ public class Controller {
         }
 
         return action;
+    }
+
+    public void setNeededFormCount(int neededFormCount) {
+        this.neededFormCount = neededFormCount;
     }
 }

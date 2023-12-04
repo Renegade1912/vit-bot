@@ -1,5 +1,6 @@
 package de.vit.models;
 
+import de.vit.bot.Bot;
 import de.vit.enums.Direction;
 import de.vit.models.utils.Vector2;
 import de.vitbund.netmaze.info.Cell;
@@ -173,10 +174,20 @@ public class Atlas {
         switch (type) {
             case Cell.FLOOR, Cell.WALL -> field.setExplored(true);
             case Cell.FORM -> {
+                // cell returns its form number and the owning player
                 field.setFormNumber(cell.getNumber());
                 field.setPlayerId(cell.getPlayer());
             }
-            case Cell.FINISH -> field.setPlayerId(cell.getPlayer());
+            case Cell.SHEET -> System.out.println("Sheet found"); // toDo
+            case Cell.FINISH -> {
+                field.setPlayerId(cell.getPlayer());
+
+                // finish cell returns the number of forms needed to finish
+                if (field.getPlayerId() == Bot.Controller.getPlayerId()) {
+                    // form numbers start at 0, so we need to subtract 1
+                    Bot.Controller.setNeededFormCount(cell.getNumber() - 1);
+                }
+            }
         }
 
         field.setType(type);

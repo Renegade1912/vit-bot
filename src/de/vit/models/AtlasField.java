@@ -49,6 +49,10 @@ public class AtlasField {
         this.playerId = playerId;
     }
 
+    public int getPlayerId() {
+        return playerId;
+    }
+
     public boolean isOwnFinishField() {
         return type == Cell.FINISH && playerId == Bot.Controller.getPlayerId();
     }

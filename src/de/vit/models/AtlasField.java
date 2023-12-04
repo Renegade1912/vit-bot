@@ -1,14 +1,21 @@
 package de.vit.models;
 
 import de.vit.bot.Bot;
+import de.vit.enums.Direction;
 import de.vit.models.utils.Vector2;
 import de.vitbund.netmaze.info.Cell;
 
 public class AtlasField {
+    public static final int UNKNWON_FIELD = -1;
+
     private final Vector2 coords;
     private int distance = Integer.MAX_VALUE;
-    private int type = 1; // 1 = wall
+    private int type = -1; // 1 = wall, -1 not defined
     private int playerId;
+    private int formNumber;
+
+    private Direction direction;
+    private boolean explored;
 
     public AtlasField(int x, int y) {
         this.coords = new Vector2(x, y);
@@ -46,12 +53,46 @@ public class AtlasField {
         return type == Cell.FINISH && playerId == Bot.Controller.getPlayerId();
     }
 
-    // @ToDo: is form and get form number
-    // Cell.FORM + Cell.getNumber() [starts at 0] + Cell.getPlayer() [playerId]
+    public boolean isExplored() {
+        return explored;
+    }
 
-    // @ToDo: test if saving cell is needed / a good idea
+    public void setExplored(boolean explored) {
+        this.explored = explored;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    public int getFormNumber() {
+        return formNumber;
+    }
+
+    public void setFormNumber(int formNumber) {
+        this.formNumber = formNumber;
+    }
+
+    @Override
+    public String toString() {
+        String result = " W ";
+        switch (type) {
+            case Cell.FLOOR -> result = "   ";
+            case Cell.WALL -> result = " W ";
+            case Cell.FORM -> {
+                result = " " + Atlas.FORMS[formNumber] + playerId;
+            }
+            case Cell.SHEET -> result = " P ";
+            case Cell.FINISH -> result = " Z ";
+        }
+
+        return result;
+    }
 
     // @ToDo: implement own equals method
-    // @ToDo: implement own toString method for maps
     // https://stackoverflow.com/questions/65314335/2048-game-java-how-do-i-print-game-board-based-on-users-input
 }

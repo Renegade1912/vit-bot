@@ -4,7 +4,13 @@ import de.vit.enums.Direction;
 import de.vit.models.utils.Vector2;
 import de.vitbund.netmaze.info.Cell;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 public class Atlas {
+    // get form char by number (0-25)
+    public static final String[] FORMS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
     // Map max x dimension
     private final int xdim;
     // Map max y dimension
@@ -63,8 +69,72 @@ public class Atlas {
         return lastField;
     }
 
+    public void printAtlasMap() {
+        StringBuilder sb = new StringBuilder();
+        for (int y = 0; y < ydim; y++) {
+            for (int x = 0; x < xdim; x++) {
+                if (x == currentX && y == currentY) {
+                    sb.append("Bot");
+                    continue;
+                }
+                sb.append(fields[x][y].toString());
+            }
+            sb.append("\n");
+        }
+
+        System.out.println(sb);
+    }
+
+    public void printPathCostsMap() {
+        StringBuilder sb = new StringBuilder();
+        for (int y = 0; y < ydim; y++) {
+            for (int x = 0; x < xdim; x++) {
+                if (fields[x][y].getDistance() == Integer.MAX_VALUE) {
+                    sb.append("XXX ");
+                    continue;
+                }
+                sb.append(String.format("%03d", fields[x][y].getDistance())).append(" ");
+            }
+            sb.append("\n");
+        }
+
+        System.out.println(sb);
+    }
+
+    public void calculatePathCosts() {
+        Queue<AtlasField> queue = new LinkedList<>();
+        // reset all distances
+        for (AtlasField[] field : fields) {
+            for (AtlasField atlasField : field) {
+                atlasField.setDistance(Integer.MAX_VALUE);
+            }
+        }
+
+        queue.add(currentField);
+        currentField.setDistance(0);
+
+        while (!queue.isEmpty()) {
+            AtlasField field = queue.poll();
+            int distance = field.getDistance() + 1;
+
+            // check neighbors is not wall
+            for (Direction direction : Direction.values()) {
+                AtlasField neighbor = getFieldByDirectionFrom(field.getX(), field.getY(), direction);
+                if (neighbor.getType() != Cell.WALL && neighbor.getType() != AtlasField.UNKNWON_FIELD && neighbor.getDistance() > distance) {
+                    neighbor.setDistance(distance);
+                    neighbor.setDirection(direction);
+                    queue.add(neighbor);
+                }
+            }
+        }
+    }
+
     public AtlasField getFieldByDirection(Direction direction) {
-        Vector2 coords = new Vector2(currentX, currentY);
+        return getFieldByDirectionFrom(currentX, currentY, direction);
+    }
+
+    public AtlasField getFieldByDirectionFrom(int x, int y, Direction direction) {
+        Vector2 coords = new Vector2(x, y);
 
         // calculate position of direction
         switch (direction) {
@@ -72,7 +142,7 @@ public class Atlas {
             case EAST -> coords.x += 1;
             case SOUTH -> coords.y += 1;
             case WEST -> coords.x -= 1;
-            case SELF -> coords = new Vector2(currentX, currentY);
+            case SELF -> coords = new Vector2(x, y);
             default -> throw new IllegalStateException("Unexpected direction: " + direction);
         }
 
@@ -96,9 +166,15 @@ public class Atlas {
         fields[x][y].setType(type);
     }
 
-    public void setFieldTypeByDirection(Direction direction, int type) {
-        // toDo: check add to wartemenge
+    public void setFieldTypeByDirection(Direction direction, Cell cell) {
         AtlasField field = getFieldByDirection(direction);
+
+        int type = cell.getType();
+        if (type == Cell.FORM) {
+            field.setFormNumber(cell.getNumber());
+            field.setPlayerId(cell.getPlayer());
+        }
+
         field.setType(type);
     }
 }

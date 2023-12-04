@@ -46,7 +46,7 @@ public class Bot implements IBot {
     @Override
     public void onGameEnd(GameEndInfo gameEndInfo) {
         System.out.println("Spiel zuende!");
-        System.out.println("Gewinner: " + gameEndInfo.getWinner());
+        System.out.println(gameEndInfo.getWinner() == Controller.getPlayerId() ? "Wir haben gewonnen!" : "Wir haben verloren!");
         System.out.println("Das Spiel dauerte " + gameEndInfo.getRound() + " Runden.");
         System.exit(0);
     }

@@ -57,6 +57,10 @@ public class AtlasField {
         return type == Cell.FINISH && playerId == Bot.Controller.getPlayerId();
     }
 
+    public boolean isOwnFormField() {
+        return type == Cell.FORM && playerId == Bot.Controller.getPlayerId();
+    }
+
     public boolean isExplored() {
         return explored;
     }
@@ -96,7 +100,4 @@ public class AtlasField {
 
         return result;
     }
-
-    // @ToDo: implement own equals method
-    // https://stackoverflow.com/questions/65314335/2048-game-java-how-do-i-print-game-board-based-on-users-input
 }

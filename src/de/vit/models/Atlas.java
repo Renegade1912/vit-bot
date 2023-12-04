@@ -5,8 +5,10 @@ import de.vit.enums.Direction;
 import de.vit.models.utils.Vector2;
 import de.vitbund.netmaze.info.Cell;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 public class Atlas {
     // get form char by number (0-25)
@@ -52,6 +54,7 @@ public class Atlas {
             if (x == currentX && y == currentY) {
                 currentField = field;
                 currentField.setType(Cell.FLOOR);
+                currentField.setExplored(true);
             }
 
             fields[x][y] = field;
@@ -122,12 +125,66 @@ public class Atlas {
             for (Direction direction : Direction.values()) {
                 AtlasField neighbor = getFieldByDirectionFrom(field.getX(), field.getY(), direction);
                 if (neighbor.getType() != Cell.WALL && neighbor.getType() != AtlasField.UNKNWON_FIELD && neighbor.getDistance() > distance) {
+                    int tmpDirectionInt = (direction.ordinal() + 2) % 4;
+                    Direction tmpDirection = Direction.values()[tmpDirectionInt];
                     neighbor.setDistance(distance);
-                    neighbor.setDirection(direction);
+                    neighbor.setDirection(tmpDirection);
                     queue.add(neighbor);
                 }
             }
         }
+    }
+
+    public boolean isMapFullyKnown() {
+        for (AtlasField[] field : fields) {
+            for (AtlasField atlasField : field) {
+                // get neighbor fields
+                LinkedList<AtlasField> neighbors = getNeighborsFrom(atlasField.getX(), atlasField.getY());
+
+                // check if all neighbors are explored
+                for (AtlasField neighbor : neighbors) {
+                    if (neighbor.getType() == AtlasField.UNKNWON_FIELD) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public AtlasField getNextExplorableField() throws NullPointerException {
+        int closestDistance = Integer.MAX_VALUE;
+        AtlasField closestField = null;
+
+        for (AtlasField[] field : fields) {
+            for (AtlasField atlasField : field) {
+                if (atlasField.getType() == Cell.WALL || atlasField.getType() == AtlasField.UNKNWON_FIELD) {
+                    continue;
+                }
+
+                // get neighbor fields
+                LinkedList<AtlasField> neighbors = getNeighborsFrom(atlasField.getX(), atlasField.getY());
+
+                for (AtlasField neighbor : neighbors) {
+                    // check if neighbor is explored
+                    if (neighbor.getType() == AtlasField.UNKNWON_FIELD) {
+                        // check if neighbor is closer than current closest
+                        int distance = atlasField.getDistance();
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestField = atlasField;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (closestField == null) {
+            throw new NullPointerException("No unexplored field found");
+        }
+
+        return closestField;
     }
 
     public AtlasField getFieldByDirection(Direction direction) {
@@ -156,15 +213,26 @@ public class Atlas {
         return fields[coords.x][coords.y];
     }
 
+    public LinkedList<AtlasField> getNeighbors() {
+        return getNeighborsFrom(currentX, currentY);
+    }
+
+    public LinkedList<AtlasField> getNeighborsFrom(int x, int y) {
+        LinkedList<AtlasField> neighbors = new LinkedList<>();
+        neighbors.add(getFieldByDirectionFrom(x, y, Direction.NORTH));
+        neighbors.add(getFieldByDirectionFrom(x, y, Direction.EAST));
+        neighbors.add(getFieldByDirectionFrom(x, y, Direction.SOUTH));
+        neighbors.add(getFieldByDirectionFrom(x, y, Direction.WEST));
+
+        return neighbors;
+    }
+
     public void updateCurrentField(Direction direction) {
         lastField = currentField;
         currentField = getFieldByDirection(direction);
+        currentField.setExplored(true);
         currentX = currentField.getX();
         currentY = currentField.getY();
-    }
-
-    public void setFieldTypeByPosition(int x, int y, int type) {
-        fields[x][y].setType(type);
     }
 
     public void setFieldTypeByDirection(Direction direction, Cell cell) {
@@ -172,7 +240,7 @@ public class Atlas {
 
         int type = cell.getType();
         switch (type) {
-            case Cell.FLOOR, Cell.WALL -> field.setExplored(true);
+            // case Cell.FLOOR, Cell.WALL -> field.setExplored(true);
             case Cell.FORM -> {
                 // cell returns its form number and the owning player
                 field.setFormNumber(cell.getNumber());
@@ -191,5 +259,29 @@ public class Atlas {
         }
 
         field.setType(type);
+    }
+
+    public AtlasField getNextFormField(int nextForm) {
+        for (AtlasField[] field : fields) {
+            for (AtlasField atlasField : field) {
+                if (atlasField.isOwnFormField() && atlasField.getFormNumber() == nextForm) {
+                    return atlasField;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public AtlasField getFinishField() {
+        for (AtlasField[] field : fields) {
+            for (AtlasField atlasField : field) {
+                if (atlasField.isOwnFinishField()) {
+                    return atlasField;
+                }
+            }
+        }
+
+        return null;
     }
 }

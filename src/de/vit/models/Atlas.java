@@ -51,6 +51,10 @@ public class Atlas {
         }
     }
 
+    public AtlasField[][] getFields() {
+        return fields;
+    }
+
     public AtlasField getCurrentField() {
         return currentField;
     }

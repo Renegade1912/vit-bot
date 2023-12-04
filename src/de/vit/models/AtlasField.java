@@ -7,7 +7,8 @@ import de.vitbund.netmaze.info.Cell;
 public class AtlasField {
     private final Vector2 coords;
     private int distance = Integer.MAX_VALUE;
-    private Cell cell;
+    private int type = 1; // 1 = wall
+    private int playerId;
 
     public AtlasField(int x, int y) {
         this.coords = new Vector2(x, y);
@@ -29,16 +30,20 @@ public class AtlasField {
         this.distance = distance;
     }
 
-    public Cell getCell() {
-        return cell;
+    public int getType() {
+        return type;
     }
 
-    public void setCell(Cell cell) {
-        this.cell = cell;
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
     }
 
     public boolean isOwnFinishField() {
-        return cell.getType() == Cell.FINISH && cell.getPlayer() == Bot.Controller.getPlayerId();
+        return type == Cell.FINISH && playerId == Bot.Controller.getPlayerId();
     }
 
     // @ToDo: is form and get form number
@@ -47,4 +52,6 @@ public class AtlasField {
     // @ToDo: test if saving cell is needed / a good idea
 
     // @ToDo: implement own equals method
+    // @ToDo: implement own toString method for maps
+    // https://stackoverflow.com/questions/65314335/2048-game-java-how-do-i-print-game-board-based-on-users-input
 }

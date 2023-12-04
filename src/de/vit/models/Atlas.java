@@ -20,6 +20,7 @@ public class Atlas {
     // Current map field
     private AtlasField currentField;
 
+
     /**
      * Builds a new Map for our Bot.
      *
@@ -43,7 +44,7 @@ public class Atlas {
 
             if (x == currentX && y == currentY) {
                 currentField = field;
-                field.setDistance(0);
+                currentField.setType(Cell.FLOOR);
             }
 
             fields[x][y] = field;
@@ -87,12 +88,13 @@ public class Atlas {
         currentY = currentField.getY();
     }
 
-    public void setFieldCellByPosition(int x, int y, Cell cell) {
-        fields[x][y].setCell(cell);
+    public void setFieldTypeByPosition(int x, int y, int type) {
+        fields[x][y].setType(type);
     }
 
-    public void setFieldCellByDirection(Direction direction, Cell cell) {
+    public void setFieldTypeByDirection(Direction direction, int type) {
+        // toDo: check add to wartemenge
         AtlasField field = getFieldByDirection(direction);
-        field.setCell(cell);
+        field.setType(type);
     }
 }

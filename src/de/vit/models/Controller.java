@@ -73,10 +73,10 @@ public class Controller {
         }
 
         // Bind neighbour cells to AtlasFields
-        atlas.setFieldCellByDirection(Direction.NORTH, roundInfo.getCellNorth());
-        atlas.setFieldCellByDirection(Direction.EAST, roundInfo.getCellEast());
-        atlas.setFieldCellByDirection(Direction.SOUTH, roundInfo.getCellSouth());
-        atlas.setFieldCellByDirection(Direction.WEST, roundInfo.getCellWest());
+        atlas.setFieldTypeByDirection(Direction.NORTH, roundInfo.getCellNorth().getType());
+        atlas.setFieldTypeByDirection(Direction.EAST, roundInfo.getCellEast().getType());
+        atlas.setFieldTypeByDirection(Direction.SOUTH, roundInfo.getCellSouth().getType());
+        atlas.setFieldTypeByDirection(Direction.WEST, roundInfo.getCellWest().getType());
     }
 
     public Action getNextAction(RoundInfo roundInfo) {

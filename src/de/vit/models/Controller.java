@@ -7,8 +7,8 @@ import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.Result;
 import de.vitbund.netmaze.info.RoundInfo;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Controller {
     // Our player number [1-4]
@@ -17,14 +17,14 @@ public class Controller {
     private final int currentLevel;
     // Our map
     private final Atlas atlas;
+    // current routes
+    private final Queue<AtlasField> routes = new LinkedList<>();
     // Max number of sheets allowed to place
-    private final int maxSheets;
+    private int availableSheets;
+    // Number of forms needed to collect
+    private int neededFormCount = Atlas.FORMS.length;
     // Current number of form to collect (if needed)
     private int nextForm = 0;
-    // Current round number
-    private int currentRound = 0;
-    // Current round done (to skip following action checks)
-    private boolean roundDone = false;
 
     /**
      * Erstelle einen neuen Steuerungs-Controller. für unseren Bot.
@@ -36,7 +36,7 @@ public class Controller {
         this.playerId = gameInfo.getPlayerId();
         this.currentLevel = gameInfo.getLevel();
         this.atlas = new Atlas(gameInfo.getSizeX(), gameInfo.getSizeY(), gameInfo.getStartX(), gameInfo.getStartY());
-        this.maxSheets = gameInfo.getSheets();
+        this.availableSheets = gameInfo.getSheets();
     }
 
     public int getPlayerId() {
@@ -47,7 +47,7 @@ public class Controller {
         // No form collecting needed
         if (currentLevel == 1) return true;
 
-        return maxSheets > 0 && nextForm > maxSheets;
+        return neededFormCount > 0 && nextForm > neededFormCount;
     }
 
     private void updateGameState(RoundInfo roundInfo) {
@@ -58,7 +58,7 @@ public class Controller {
         switch (result) {
             case Result.NOK -> System.out.println("NOK"); // toDo
             case Result.NOK_NOTSUPPORTED -> System.out.println("Not supported"); // toDo
-            case Result.NOK_BLOCKED -> System.out.println("Blocked"); // toDo
+            case Result.NOK_BLOCKED -> System.out.println("Went into a wall (unexpected)");
             case Result.NOK_NOTYOURS -> System.out.println("Not yours"); // toDo
             case Result.NOK_EMPTY -> System.out.println("Empty"); // toDo
             case Result.NOK_WRONGORDER -> System.out.println("Wrong order"); // toDo
@@ -68,74 +68,144 @@ public class Controller {
             case Result.OK_SOUTH -> atlas.updateCurrentField(Direction.SOUTH);
             case Result.OK_WEST -> atlas.updateCurrentField(Direction.WEST);
             case Result.OK_FORM -> nextForm++;
-            case Result.OK_SHEET -> System.out.println("Sheet"); // toDo
+            case Result.OK_SHEET -> {
+                System.out.println("Placed sheet on " + Atlas.FORMS[atlas.getCurrentField().getFormNumber()] + atlas.getCurrentField().getPlayerId());
+                availableSheets--;
+            }
             case Result.OK_FINISH -> System.exit(0);
         }
 
         // Bind neighbour cells to AtlasFields
-        atlas.setFieldTypeByDirection(Direction.NORTH, roundInfo.getCellNorth().getType());
-        atlas.setFieldTypeByDirection(Direction.EAST, roundInfo.getCellEast().getType());
-        atlas.setFieldTypeByDirection(Direction.SOUTH, roundInfo.getCellSouth().getType());
-        atlas.setFieldTypeByDirection(Direction.WEST, roundInfo.getCellWest().getType());
+        atlas.setFieldTypeByDirection(Direction.NORTH, roundInfo.getCellNorth());
+        atlas.setFieldTypeByDirection(Direction.EAST, roundInfo.getCellEast());
+        atlas.setFieldTypeByDirection(Direction.SOUTH, roundInfo.getCellSouth());
+        atlas.setFieldTypeByDirection(Direction.WEST, roundInfo.getCellWest());
     }
 
-    public Action getNextAction(RoundInfo roundInfo) {
+    public Action getNextAction(RoundInfo roundInfo) throws IllegalStateException {
         // Inform about round count
-        currentRound = roundInfo.getRoundNumber();
-        System.out.println("##################### Runde " + currentRound + " beginnt #####################");
+        System.out.println("##################### Runde " + roundInfo.getRoundNumber() + " beginnt #####################");
 
         // Update game state
         updateGameState(roundInfo);
 
+        // Calculate paths
+        atlas.calculatePathCosts();
+
         // Prepare action
         Action action = new Action();
 
-        // Info about last action
-        Result result = roundInfo.getResult();
-
         // Info about current cell
         Cell cell = roundInfo.getCellCurrent();
+        int cellType = cell.getType();
+        AtlasField currentField = atlas.getCurrentField();
 
-        if (cell.getType() == Cell.FORM && result.getResult() != Result.NOK_WRONGORDER) {
-            // Take form
-            // @ToDo: Implement form checking
-            action.take();
-        } else if (cell.getType() == Cell.FINISH) {
-            // At finish cell = end game
-            // @ToDo: Implement better can finish checking
+        // At own finish cell and game is done = end game
+        if (cellType == Cell.FINISH && currentField.isOwnFinishField() && isGameDone()) {
             System.out.println("Ziel erreicht!");
             action.finish();
-        } else {
-            // Get next move
-            // @ToDo: Refactor to remove CellActions
-            List<CellAction> cells = new ArrayList<>();
-            cells.add(new CellAction(roundInfo.getCellNorth(), Direction.NORTH));
-            cells.add(new CellAction(roundInfo.getCellEast(), Direction.EAST));
-            cells.add(new CellAction(roundInfo.getCellSouth(), Direction.SOUTH));
-            cells.add(new CellAction(roundInfo.getCellWest(), Direction.WEST));
 
-            for (CellAction c : cells) {
-                {
-                    Cell handledCell = c.getCell();
-                    AtlasField affectedMapField = atlas.getFieldByDirection(c.getDirection());
+            return action;
+        }
 
-                    if (handledCell.getType() == Cell.FORM) {
-                        System.out.println(handledCell.getNumber() + " / " + handledCell.getPlayer());
-                    }
+        // Can finish game and not on finish pos but known = move to finish
+        AtlasField finishField = atlas.getFinishField();
+        if (isGameDone() && finishField != null) {
+            routes.clear();
+            routes.add(finishField);
+        }
 
-                    if ((handledCell.getType() == Cell.FLOOR || handledCell.getType() == Cell.FINISH || handledCell.getType() == Cell.FORM) && !affectedMapField.equals(atlas.getLastField())) {
-                        switch (c.getDirection()) {
-                            case EAST -> action.moveEast();
-                            case NORTH -> action.moveNorth();
-                            case SOUTH -> action.moveSouth();
-                            case WEST -> action.moveWest();
+        // On Sheet
+        if (cellType == Cell.SHEET ) {
+            // toDo: we know that we are on a sheet and dont know if our form is under it, we need to check if it is ours
+        }
+
+        // On Form
+        if (cellType == Cell.FORM) {
+            if (currentField.isOwnFormField() && nextForm == cell.getNumber()) {
+                // Own next form = take it
+                action.take();
+                return action;
+            } else {
+                //  Other players form
+                if (availableSheets > 0 && currentLevel == 5) {
+                    // can place sheet
+                    action.put();
+                    return  action;
+                } else if (currentLevel >= 4) {
+                    /* toDo: unstable
+
+                    // kick that form!
+                    // toDo: check where is form now??? not that we care >:D
+                    for (Direction direction : Direction.values()) {
+                        AtlasField neighbor = atlas.getFieldByDirectionFrom(currentField.getX(), currentField.getY(), direction);
+                        if (neighbor.getType() != Cell.WALL && neighbor.getType() != AtlasField.UNKNWON_FIELD && neighbor.getType() != Cell.FORM) {
+                            switch (direction) {
+                                case NORTH -> action.kickNorth();
+                                case EAST -> action.kickEast();
+                                case SOUTH -> action.kickSouth();
+                                case WEST -> action.kickWest();
+                            }
+                            return action;
                         }
-                        break;
                     }
+                    */
                 }
             }
         }
 
-        return action;
+
+        AtlasField nextFormField = atlas.getNextFormField(nextForm);
+        if (nextFormField != null) {
+            // next form known?
+            routes.add(nextFormField);
+        }
+
+        // Explore map?
+        if (!atlas.isMapFullyKnown() && routes.isEmpty()) {
+            routes.add(atlas.getNextExplorableField());
+        }
+
+        // Check for routes
+        if (!routes.isEmpty()) {
+            AtlasField nextField = routes.poll();
+            // get list of currentfield neighbors
+            LinkedList<AtlasField> neighbors = atlas.getNeighbors();
+
+            // init with nextField as origin
+            AtlasField nextFieldOrigin = nextField;
+
+            // check if next field origin is in neighbors
+            while (!neighbors.contains(nextFieldOrigin)) {
+                // not in neighbors, move to nextFieldOrigin´s origin
+                nextFieldOrigin = atlas.getFieldByDirectionFrom(nextFieldOrigin.getX(), nextFieldOrigin.getY(), nextFieldOrigin.getDirection());
+            }
+
+            int tmpDirectionInt = (nextFieldOrigin.getDirection().ordinal() + 2) % 4;
+            Direction tmpDirection = Direction.values()[tmpDirectionInt];
+
+            switch (tmpDirection) {
+                case NORTH -> action.moveNorth();
+                case EAST -> action.moveEast();
+                case SOUTH -> action.moveSouth();
+                case WEST -> action.moveWest();
+            }
+
+            return action;
+        }
+
+
+        // No action found
+        throw new IllegalStateException("No action found!");
+    }
+
+    public void setNeededFormCount(int neededFormCount) {
+        this.neededFormCount = neededFormCount;
+    }
+
+    public void addRoute(AtlasField field) {
+        if (!routes.contains(field)) {
+            routes.add(field);
+        }
     }
 }

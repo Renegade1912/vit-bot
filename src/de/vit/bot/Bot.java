@@ -13,7 +13,7 @@ public class Bot implements IBot {
 
     @Override
     public String getName() {
-        return "RoadRunner";
+        return "MODX";
     }
 
     /**

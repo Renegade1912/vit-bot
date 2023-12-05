@@ -15,7 +15,6 @@ public class AtlasField {
     private int formNumber;
 
     private Direction direction;
-    private boolean explored;
 
     public AtlasField(int x, int y) {
         this.coords = new Vector2(x, y);
@@ -59,14 +58,6 @@ public class AtlasField {
 
     public boolean isOwnFormField() {
         return type == Cell.FORM && playerId == Bot.Controller.getPlayerId();
-    }
-
-    public boolean isExplored() {
-        return explored;
-    }
-
-    public void setExplored(boolean explored) {
-        this.explored = explored;
     }
 
     public Direction getDirection() {

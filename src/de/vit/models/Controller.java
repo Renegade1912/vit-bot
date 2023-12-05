@@ -43,6 +43,16 @@ public class Controller {
         return playerId;
     }
 
+    public void setNeededFormCount(int neededFormCount) {
+        this.neededFormCount = neededFormCount;
+    }
+
+    public void addRoute(AtlasField field) {
+        if (!routes.contains(field)) {
+            routes.add(field);
+        }
+    }
+
     public boolean isGameDone() {
         // No form collecting needed
         if (currentLevel == 1) return true;
@@ -112,7 +122,7 @@ public class Controller {
         AtlasField finishField = atlas.getFinishField();
         if (isGameDone() && finishField != null) {
             routes.clear();
-            routes.add(finishField);
+            addRoute(finishField);
         }
 
         // On Sheet
@@ -158,12 +168,12 @@ public class Controller {
         AtlasField nextFormField = atlas.getNextFormField(nextForm);
         if (nextFormField != null) {
             // next form known?
-            routes.add(nextFormField);
+            addRoute(nextFormField);
         }
 
         // Explore map?
         if (!atlas.isMapFullyKnown() && routes.isEmpty()) {
-            routes.add(atlas.getNextExplorableField());
+            addRoute(atlas.getNextExplorableField());
         }
 
         // Check for routes
@@ -197,15 +207,5 @@ public class Controller {
 
         // No action found
         throw new IllegalStateException("No action found!");
-    }
-
-    public void setNeededFormCount(int neededFormCount) {
-        this.neededFormCount = neededFormCount;
-    }
-
-    public void addRoute(AtlasField field) {
-        if (!routes.contains(field)) {
-            routes.add(field);
-        }
     }
 }

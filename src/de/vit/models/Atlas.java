@@ -24,8 +24,6 @@ public class Atlas {
     private int currentX;
     // Current y position
     private int currentY;
-    // Last map field
-    private AtlasField lastField;
     // Current map field
     private AtlasField currentField;
 
@@ -54,23 +52,14 @@ public class Atlas {
             if (x == currentX && y == currentY) {
                 currentField = field;
                 currentField.setType(Cell.FLOOR);
-                currentField.setExplored(true);
             }
 
             fields[x][y] = field;
         }
     }
 
-    public AtlasField[][] getFields() {
-        return fields;
-    }
-
     public AtlasField getCurrentField() {
         return currentField;
-    }
-
-    public AtlasField getLastField() {
-        return lastField;
     }
 
     public void printAtlasMap() {
@@ -191,7 +180,7 @@ public class Atlas {
         return getFieldByDirectionFrom(currentX, currentY, direction);
     }
 
-    public AtlasField getFieldByDirectionFrom(int x, int y, Direction direction) {
+    public AtlasField getFieldByDirectionFrom(int x, int y, Direction direction) throws IllegalStateException {
         Vector2 coords = new Vector2(x, y);
 
         // calculate position of direction
@@ -228,9 +217,7 @@ public class Atlas {
     }
 
     public void updateCurrentField(Direction direction) {
-        lastField = currentField;
         currentField = getFieldByDirection(direction);
-        currentField.setExplored(true);
         currentX = currentField.getX();
         currentY = currentField.getY();
     }
@@ -240,7 +227,7 @@ public class Atlas {
 
         int type = cell.getType();
         switch (type) {
-            // case Cell.FLOOR, Cell.WALL -> field.setExplored(true);
+            // case Cell.FLOOR, Cell.WALL
             case Cell.FORM -> {
                 // cell returns its form number and the owning player
                 field.setFormNumber(cell.getNumber());

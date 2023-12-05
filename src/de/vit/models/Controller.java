@@ -7,6 +7,7 @@ import de.vitbund.netmaze.info.GameInfo;
 import de.vitbund.netmaze.info.Result;
 import de.vitbund.netmaze.info.RoundInfo;
 
+import java.rmi.UnexpectedException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -25,6 +26,8 @@ public class Controller {
     private int neededFormCount = Atlas.FORMS.length;
     // Current number of form to collect (if needed)
     private int nextForm = 0;
+    private int searchRadius = 0;
+    private boolean isFormRoute = false;
 
     /**
      * Erstelle einen neuen Steuerungs-Controller. für unseren Bot.
@@ -37,6 +40,8 @@ public class Controller {
         this.currentLevel = gameInfo.getLevel();
         this.atlas = new Atlas(gameInfo.getSizeX(), gameInfo.getSizeY(), gameInfo.getStartX(), gameInfo.getStartY());
         this.availableSheets = gameInfo.getSheets();
+
+        System.out.println(gameInfo.getSheets());
     }
 
     public int getPlayerId() {
@@ -65,24 +70,56 @@ public class Controller {
         int result = roundInfo.getResult().getResult();
 
         // Handle result, e.g. update map position
+        // toDo
+        // toDo
+        // toDo
+        // toDo
+        // toDo
+        // toDo
         switch (result) {
-            case Result.NOK -> System.out.println("NOK"); // toDo
-            case Result.NOK_NOTSUPPORTED -> System.out.println("Not supported"); // toDo
-            case Result.NOK_BLOCKED -> System.out.println("Went into a wall (unexpected)");
-            case Result.NOK_NOTYOURS -> System.out.println("Not yours"); // toDo
-            case Result.NOK_EMPTY -> System.out.println("Empty"); // toDo
-            case Result.NOK_WRONGORDER -> System.out.println("Wrong order"); // toDo
-            case Result.NOK_TALKING -> System.out.println("Talking"); // toDo
-            case Result.OK_NORTH -> atlas.updateCurrentField(Direction.NORTH);
-            case Result.OK_EAST -> atlas.updateCurrentField(Direction.EAST);
-            case Result.OK_SOUTH -> atlas.updateCurrentField(Direction.SOUTH);
-            case Result.OK_WEST -> atlas.updateCurrentField(Direction.WEST);
-            case Result.OK_FORM -> nextForm++;
-            case Result.OK_SHEET -> {
+            case Result.NOK:
+                System.out.println("NOK");
+                break;
+            case Result.NOK_NOTSUPPORTED:
+                System.out.println("Not supported");
+                break;
+            case Result.NOK_BLOCKED:
+                System.out.println("Went into a wall (unexpected)");
+                break;
+            case Result.NOK_NOTYOURS:
+                System.out.println("Not yours");
+                break;
+            case Result.NOK_EMPTY:
+                System.out.println("Empty");
+                break;
+            case Result.NOK_WRONGORDER:
+                System.out.println("Wrong order");
+                break;
+            case Result.NOK_TALKING:
+                System.out.println("Talking");
+                break;
+            case Result.OK_NORTH:
+                atlas.updateCurrentField(Direction.NORTH);
+                break;
+            case Result.OK_EAST:
+                atlas.updateCurrentField(Direction.EAST);
+                break;
+            case Result.OK_SOUTH:
+                atlas.updateCurrentField(Direction.SOUTH);
+                break;
+            case Result.OK_WEST:
+                atlas.updateCurrentField(Direction.WEST);
+                break;
+            case Result.OK_FORM:
+                nextForm++;
+                isFormRoute = false;
+                break;
+            case Result.OK_SHEET:
                 System.out.println("Placed sheet on " + Atlas.FORMS[atlas.getCurrentField().getFormNumber()] + atlas.getCurrentField().getPlayerId());
                 availableSheets--;
-            }
-            case Result.OK_FINISH -> System.exit(0);
+                break;
+            case Result.OK_FINISH:
+                System.exit(0);
         }
 
         // Bind neighbour cells to AtlasFields
@@ -126,7 +163,7 @@ public class Controller {
         }
 
         // On Sheet
-        if (cellType == Cell.SHEET ) {
+        if (cellType == Cell.SHEET) {
             // toDo: we know that we are on a sheet and dont know if our form is under it, we need to check if it is ours
         }
 
@@ -141,25 +178,40 @@ public class Controller {
                 if (availableSheets > 0 && currentLevel == 5) {
                     // can place sheet
                     action.put();
-                    return  action;
+                    return action;
                 } else if (currentLevel >= 4) {
-                    /* toDo: unstable
-
-                    // kick that form!
+                    // toDo: unstable
                     // toDo: check where is form now??? not that we care >:D
-                    for (Direction direction : Direction.values()) {
-                        AtlasField neighbor = atlas.getFieldByDirectionFrom(currentField.getX(), currentField.getY(), direction);
-                        if (neighbor.getType() != Cell.WALL && neighbor.getType() != AtlasField.UNKNWON_FIELD && neighbor.getType() != Cell.FORM) {
-                            switch (direction) {
-                                case NORTH -> action.kickNorth();
-                                case EAST -> action.kickEast();
-                                case SOUTH -> action.kickSouth();
-                                case WEST -> action.kickWest();
+
+                    // Get the current field neighbors from atlas
+                    LinkedList<AtlasField> neighbors = atlas.getNeighbors();
+                    for (AtlasField neighbor : neighbors) {
+                        if (neighbor.getType() == Cell.FLOOR) {
+                            // neighbor is the form we are on
+                            Direction tmpDirection = null;
+                            try {
+                                tmpDirection = atlas.getDirectionToFieldFromCurrent(neighbor);
+                            } catch (UnexpectedException e) {
+                                throw new RuntimeException(e);
+                            }
+
+                            switch (tmpDirection) {
+                                case NORTH:
+                                    action.kickNorth();
+                                    break;
+                                case EAST:
+                                    action.kickEast();
+                                    break;
+                                case SOUTH:
+                                    action.kickSouth();
+                                    break;
+                                case WEST:
+                                    action.kickWest();
+                                    break;
                             }
                             return action;
                         }
                     }
-                    */
                 }
             }
         }
@@ -169,6 +221,7 @@ public class Controller {
         if (nextFormField != null) {
             // next form known?
             addRoute(nextFormField);
+            isFormRoute = true;
         }
 
         // Explore map?
@@ -195,10 +248,18 @@ public class Controller {
             Direction tmpDirection = Direction.values()[tmpDirectionInt];
 
             switch (tmpDirection) {
-                case NORTH -> action.moveNorth();
-                case EAST -> action.moveEast();
-                case SOUTH -> action.moveSouth();
-                case WEST -> action.moveWest();
+                case NORTH:
+                    action.moveNorth();
+                    break;
+                case EAST:
+                    action.moveEast();
+                    break;
+                case SOUTH:
+                    action.moveSouth();
+                    break;
+                case WEST:
+                    action.moveWest();
+                    break;
             }
 
             return action;

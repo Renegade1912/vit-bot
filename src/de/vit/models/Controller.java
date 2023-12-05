@@ -26,8 +26,7 @@ public class Controller {
     private int neededFormCount = Atlas.FORMS.length;
     // Current number of form to collect (if needed)
     private int nextForm = 0;
-    private int searchRadius = 0;
-    private boolean isFormRoute = false;
+    private boolean lastActionWasKick = false;
 
     /**
      * Erstelle einen neuen Steuerungs-Controller. für unseren Bot.
@@ -70,12 +69,6 @@ public class Controller {
         int result = roundInfo.getResult().getResult();
 
         // Handle result, e.g. update map position
-        // toDo
-        // toDo
-        // toDo
-        // toDo
-        // toDo
-        // toDo
         switch (result) {
             case Result.NOK:
                 System.out.println("NOK");
@@ -99,20 +92,31 @@ public class Controller {
                 System.out.println("Talking");
                 break;
             case Result.OK_NORTH:
-                atlas.updateCurrentField(Direction.NORTH);
+                if (!lastActionWasKick)
+                    atlas.updateCurrentField(Direction.NORTH);
+
+                lastActionWasKick = false;
                 break;
             case Result.OK_EAST:
-                atlas.updateCurrentField(Direction.EAST);
+                if (!lastActionWasKick)
+                    atlas.updateCurrentField(Direction.EAST);
+
+                lastActionWasKick = false;
                 break;
             case Result.OK_SOUTH:
-                atlas.updateCurrentField(Direction.SOUTH);
+                if (!lastActionWasKick)
+                    atlas.updateCurrentField(Direction.SOUTH);
+
+                lastActionWasKick = false;
                 break;
             case Result.OK_WEST:
-                atlas.updateCurrentField(Direction.WEST);
+                if (!lastActionWasKick)
+                    atlas.updateCurrentField(Direction.WEST);
+
+                lastActionWasKick = false;
                 break;
             case Result.OK_FORM:
                 nextForm++;
-                isFormRoute = false;
                 break;
             case Result.OK_SHEET:
                 System.out.println("Placed sheet on " + Atlas.FORMS[atlas.getCurrentField().getFormNumber()] + atlas.getCurrentField().getPlayerId());
@@ -173,7 +177,7 @@ public class Controller {
                 // Own next form = take it
                 action.take();
                 return action;
-            } else {
+            } else if (!currentField.isOwnFormField()) {
                 //  Other players form
                 if (availableSheets > 0 && currentLevel == 5) {
                     // can place sheet
@@ -185,7 +189,9 @@ public class Controller {
 
                     // Get the current field neighbors from atlas
                     LinkedList<AtlasField> neighbors = atlas.getNeighbors();
-                    for (AtlasField neighbor : neighbors) {
+                    LinkedList<AtlasField> shuffledNeighbors = shuffle(neighbors);
+
+                    for (AtlasField neighbor : shuffledNeighbors) {
                         if (neighbor.getType() == Cell.FLOOR) {
                             // neighbor is the form we are on
                             Direction tmpDirection = null;
@@ -209,6 +215,9 @@ public class Controller {
                                     action.kickWest();
                                     break;
                             }
+
+                            lastActionWasKick = true;
+
                             return action;
                         }
                     }
@@ -221,7 +230,6 @@ public class Controller {
         if (nextFormField != null) {
             // next form known?
             addRoute(nextFormField);
-            isFormRoute = true;
         }
 
         // Explore map?
@@ -268,5 +276,14 @@ public class Controller {
 
         // No action found
         throw new IllegalStateException("No action found!");
+    }
+
+    public LinkedList<AtlasField> shuffle(LinkedList<AtlasField> list) {
+        LinkedList<AtlasField> shuffledList = new LinkedList<>();
+        while (!list.isEmpty()) {
+            int index = (int) (Math.random() * list.size());
+            shuffledList.add(list.remove(index));
+        }
+        return shuffledList;
     }
 }

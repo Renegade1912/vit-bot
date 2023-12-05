@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="UnlimitedBot:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/UnlimitedBot_jar</output-path>
+    <root id="archive" name="UnlimitedBot.jar">
+      <element id="module-output" name="UnlimitedBot" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../VITNetMaze.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

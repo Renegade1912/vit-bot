@@ -80,13 +80,21 @@ public class AtlasField {
     public String toString() {
         String result = " W ";
         switch (type) {
-            case Cell.FLOOR -> result = "   ";
-            case Cell.WALL -> result = " W ";
-            case Cell.FORM -> {
+            case Cell.FLOOR:
+                result = "   ";
+                break;
+            case Cell.WALL:
+                result = " W ";
+                break;
+            case Cell.FORM:
                 result = " " + Atlas.FORMS[formNumber] + playerId;
-            }
-            case Cell.SHEET -> result = " P ";
-            case Cell.FINISH -> result = " Z ";
+                break;
+            case Cell.SHEET:
+                result = " P ";
+                break;
+            case Cell.FINISH:
+                result = " Z ";
+                break;
         }
 
         return result;

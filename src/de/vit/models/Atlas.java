@@ -5,16 +5,15 @@ import de.vit.enums.Direction;
 import de.vit.models.utils.Vector2;
 import de.vitbund.netmaze.info.Cell;
 
-import java.util.HashMap;
+import java.rmi.UnexpectedException;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 public class Atlas {
     // get form char by number (0-25)
     public static final String[] FORMS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-    // Map max x dimension
+    // Map max x dimensionbo
     private final int xdim;
     // Map max y dimension
     private final int ydim;
@@ -185,12 +184,23 @@ public class Atlas {
 
         // calculate position of direction
         switch (direction) {
-            case NORTH -> coords.y -= 1;
-            case EAST -> coords.x += 1;
-            case SOUTH -> coords.y += 1;
-            case WEST -> coords.x -= 1;
-            case SELF -> coords = new Vector2(x, y);
-            default -> throw new IllegalStateException("Unexpected direction: " + direction);
+            case NORTH:
+                coords.y -= 1;
+                break;
+            case EAST:
+                coords.x += 1;
+                break;
+            case SOUTH:
+                coords.y += 1;
+                break;
+            case WEST:
+                coords.x -= 1;
+                break;
+            case SELF:
+                coords = new Vector2(x, y);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected direction: " + direction);
         }
 
         // check for out of bounds
@@ -226,23 +236,24 @@ public class Atlas {
         AtlasField field = getFieldByDirection(direction);
 
         int type = cell.getType();
-        switch (type) {
-            // case Cell.FLOOR, Cell.WALL
-            case Cell.FORM -> {
-                // cell returns its form number and the owning player
+        // case Cell.FLOOR, Cell.WALL
+        // toDo
+        switch (type) {// cell returns its form number and the owning player
+            case Cell.FORM:
                 field.setFormNumber(cell.getNumber());
                 field.setPlayerId(cell.getPlayer());
-            }
-            case Cell.SHEET -> System.out.println("Sheet found"); // toDo
-            case Cell.FINISH -> {
+                break;
+            case Cell.SHEET:
+                System.out.println("Sheet found");
+                break;
+// finish cell returns the number of forms needed to finish
+            case Cell.FINISH:
                 field.setPlayerId(cell.getPlayer());
-
-                // finish cell returns the number of forms needed to finish
                 if (field.getPlayerId() == Bot.Controller.getPlayerId()) {
                     // form numbers start at 0, so we need to subtract 1
                     Bot.Controller.setNeededFormCount(cell.getNumber() - 1);
                 }
-            }
+                break;
         }
 
         field.setType(type);
@@ -270,5 +281,30 @@ public class Atlas {
         }
 
         return null;
+    }
+
+    public Direction getDirectionToFieldFromCurrent(AtlasField field) throws UnexpectedException {
+        int x = field.getX();
+        int y = field.getY();
+
+        if (x == currentX && y == currentY) {
+            throw new UnexpectedException("Field is current field");
+        }
+
+        if (x == currentX) {
+            if (y < currentY) {
+                return Direction.NORTH;
+            } else {
+                return Direction.SOUTH;
+            }
+        } else if (y == currentY) {
+            if (x < currentX) {
+                return Direction.WEST;
+            } else {
+                return Direction.EAST;
+            }
+        }
+
+        throw new UnexpectedException("Field is current field");
     }
 }

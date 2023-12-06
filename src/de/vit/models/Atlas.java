@@ -237,16 +237,13 @@ public class Atlas {
 
         int type = cell.getType();
         // case Cell.FLOOR, Cell.WALL
-        // toDo
-        switch (type) {// cell returns its form number and the owning player
+        switch (type) {
             case Cell.FORM:
                 field.setFormNumber(cell.getNumber());
                 field.setPlayerId(cell.getPlayer());
                 break;
             case Cell.SHEET:
-                System.out.println("Sheet found");
                 break;
-// finish cell returns the number of forms needed to finish
             case Cell.FINISH:
                 field.setPlayerId(cell.getPlayer());
                 if (field.getPlayerId() == Bot.Controller.getPlayerId()) {
@@ -254,6 +251,12 @@ public class Atlas {
                     Bot.Controller.setNeededFormCount(cell.getNumber() - 1);
                 }
                 break;
+        }
+
+        // reset form number and player id if type is not Cell.FORM, Cell.SHEET or Cell.FINISH
+        if (type != Cell.SHEET && type != Cell.FINISH && type != Cell.FORM) {
+            field.setPlayerId(0);
+            field.setFormNumber(0);
         }
 
         field.setType(type);
@@ -306,5 +309,15 @@ public class Atlas {
         }
 
         throw new UnexpectedException("Field is current field");
+    }
+
+    public void resetExploredForRadius(int radius) {
+        for (AtlasField[] field : fields) {
+            for (AtlasField atlasField : field) {
+                if (atlasField.getDistance() > radius) {
+                    atlasField.resetFormExplored();
+                }
+            }
+        }
     }
 }

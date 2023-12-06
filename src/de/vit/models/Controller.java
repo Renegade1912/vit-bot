@@ -11,13 +11,22 @@ import java.rmi.UnexpectedException;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/*
+    toDo:
+    - Check if we are on a sheet and our form is under it
+    - Check if our form has moved
+    - Update algo to check only every 2 lines
+    - implement player radar
+    - find a way to identify player start fields
+*/
+
 public class Controller {
+    // Our map
+    public final Atlas atlas;
     // Our player number [1-4]
     private final int playerId;
     // Current level to determined game rules
     private final int currentLevel;
-    // Our map
-    private final Atlas atlas;
     // current routes
     private final Queue<AtlasField> routes = new LinkedList<>();
     // Max number of sheets allowed to place
@@ -27,6 +36,7 @@ public class Controller {
     // Current number of form to collect (if needed)
     private int nextForm = 0;
     private boolean lastActionWasKick = false;
+    private boolean lastActionWasSheet = false;
 
     /**
      * Erstelle einen neuen Steuerungs-Controller. für unseren Bot.
@@ -38,9 +48,7 @@ public class Controller {
         this.playerId = gameInfo.getPlayerId();
         this.currentLevel = gameInfo.getLevel();
         this.atlas = new Atlas(gameInfo.getSizeX(), gameInfo.getSizeY(), gameInfo.getStartX(), gameInfo.getStartY());
-        this.availableSheets = gameInfo.getSheets();
-
-        System.out.println(gameInfo.getSheets());
+        this.availableSheets = currentLevel == 5 ? 3 : 0; // gameInfo.getSheets();
     }
 
     public int getPlayerId() {
@@ -68,6 +76,13 @@ public class Controller {
         // Success/Fail of last action
         int result = roundInfo.getResult().getResult();
 
+        if (result == Result.OK) {
+            if (lastActionWasSheet) {
+                availableSheets--;
+                lastActionWasSheet = false;
+            }
+        }
+
         // Handle result, e.g. update map position
         switch (result) {
             case Result.NOK:
@@ -78,6 +93,8 @@ public class Controller {
                 break;
             case Result.NOK_BLOCKED:
                 System.out.println("Went into a wall (unexpected)");
+                // toDo: Check if we kicked into startfield
+                // System.exit(1);
                 break;
             case Result.NOK_NOTYOURS:
                 System.out.println("Not yours");
@@ -119,8 +136,7 @@ public class Controller {
                 nextForm++;
                 break;
             case Result.OK_SHEET:
-                System.out.println("Placed sheet on " + Atlas.FORMS[atlas.getCurrentField().getFormNumber()] + atlas.getCurrentField().getPlayerId());
-                availableSheets--;
+                availableSheets++;
                 break;
             case Result.OK_FINISH:
                 System.exit(0);
@@ -169,6 +185,7 @@ public class Controller {
         // On Sheet
         if (cellType == Cell.SHEET) {
             // toDo: we know that we are on a sheet and dont know if our form is under it, we need to check if it is ours
+
         }
 
         // On Form
@@ -176,50 +193,46 @@ public class Controller {
             if (currentField.isOwnFormField() && nextForm == cell.getNumber()) {
                 // Own next form = take it
                 action.take();
+                System.out.println("Versuche Formular " + Atlas.FORMS[nextForm] + " zu nehmen.");
                 return action;
             } else if (!currentField.isOwnFormField()) {
                 //  Other players form
-                if (availableSheets > 0 && currentLevel == 5) {
+                if (availableSheets > 0) {
                     // can place sheet
-                    action.put();
-                    return action;
-                } else if (currentLevel >= 4) {
-                    // toDo: unstable
-                    // toDo: check where is form now??? not that we care >:D
+                    // 30 percentage chance
+                    if (Math.random() > 0.7) {
+                        action.put();
+                        lastActionWasSheet = true;
+                        System.out.println("Versuche Papier zu platzieren.");
+                        return action;
+                    }
+                }
 
-                    // Get the current field neighbors from atlas
-                    LinkedList<AtlasField> neighbors = atlas.getNeighbors();
-                    LinkedList<AtlasField> shuffledNeighbors = shuffle(neighbors);
-
-                    for (AtlasField neighbor : shuffledNeighbors) {
-                        if (neighbor.getType() == Cell.FLOOR) {
-                            // neighbor is the form we are on
-                            Direction tmpDirection = null;
-                            try {
-                                tmpDirection = atlas.getDirectionToFieldFromCurrent(neighbor);
-                            } catch (UnexpectedException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            switch (tmpDirection) {
-                                case NORTH:
-                                    action.kickNorth();
-                                    break;
-                                case EAST:
-                                    action.kickEast();
-                                    break;
-                                case SOUTH:
-                                    action.kickSouth();
-                                    break;
-                                case WEST:
-                                    action.kickWest();
-                                    break;
-                            }
-
-                            lastActionWasKick = true;
-
-                            return action;
+                if (currentLevel >= 4) {
+                    Direction direction = getFreeDirection();
+                    if (direction != null) {
+                        switch (direction) {
+                            case NORTH:
+                                System.out.println("Versuche nach Norden zu kicken.");
+                                action.kickNorth();
+                                break;
+                            case EAST:
+                                System.out.println("Versuche nach Osten zu kicken.");
+                                action.kickEast();
+                                break;
+                            case SOUTH:
+                                System.out.println("Versuche nach Süden zu kicken.");
+                                action.kickSouth();
+                                break;
+                            case WEST:
+                                System.out.println("Versuche nach Westen zu kicken.");
+                                action.kickWest();
+                                break;
                         }
+
+                        lastActionWasKick = true;
+
+                        return action;
                     }
                 }
             }
@@ -257,15 +270,19 @@ public class Controller {
 
             switch (tmpDirection) {
                 case NORTH:
+                    System.out.println("Versuche nach Norden zu gehen.");
                     action.moveNorth();
                     break;
                 case EAST:
+                    System.out.println("Versuche nach Osten zu gehen.");
                     action.moveEast();
                     break;
                 case SOUTH:
+                    System.out.println("Versuche nach Süden zu gehen.");
                     action.moveSouth();
                     break;
                 case WEST:
+                    System.out.println("Versuche nach Westen zu gehen.");
                     action.moveWest();
                     break;
             }
@@ -285,5 +302,27 @@ public class Controller {
             shuffledList.add(list.remove(index));
         }
         return shuffledList;
+    }
+
+    public Direction getFreeDirection() {
+        // Get the current field neighbors from atlas
+        LinkedList<AtlasField> neighbors = atlas.getNeighbors();
+        LinkedList<AtlasField> shuffledNeighbors = shuffle(neighbors);
+
+        Direction tmpDirection = null;
+        for (AtlasField neighbor : shuffledNeighbors) {
+            System.out.println(neighbor.getType());
+            if (neighbor.getType() == Cell.FLOOR) {
+                try {
+                    tmpDirection = atlas.getDirectionToFieldFromCurrent(neighbor);
+                    System.out.println("Found free direction: " + tmpDirection);
+                    break;
+                } catch (UnexpectedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        return tmpDirection;
     }
 }

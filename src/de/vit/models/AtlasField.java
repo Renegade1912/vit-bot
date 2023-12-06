@@ -10,9 +10,9 @@ public class AtlasField {
 
     private final Vector2 coords;
     private int distance = Integer.MAX_VALUE;
-    private int type = -1; // 1 = wall, -1 not defined
-    private int playerId;
-    private int formNumber;
+    private int type = UNKNWON_FIELD; // 1 = wall, -1 not defined
+    private int playerId = -1;
+    private int formNumber = -1;
 
     private Direction direction;
 
@@ -44,12 +44,12 @@ public class AtlasField {
         this.type = type;
     }
 
-    public void setPlayerId(int playerId) {
-        this.playerId = playerId;
-    }
-
     public int getPlayerId() {
         return playerId;
+    }
+
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
     }
 
     public boolean isOwnFinishField() {
@@ -90,13 +90,25 @@ public class AtlasField {
                 result = " " + Atlas.FORMS[formNumber] + playerId;
                 break;
             case Cell.SHEET:
-                result = " P ";
+                if (playerId != -1 && formNumber != -1) {
+                    result = Atlas.FORMS[formNumber] + playerId + "P";
+                } else {
+                    result = " P ";
+                }
                 break;
             case Cell.FINISH:
-                result = " Z ";
+                result = " Z" + playerId;
                 break;
         }
 
         return result;
+    }
+
+    public void resetFormExplored() {
+        this.formNumber = -1;
+        this.playerId = -1;
+        this.type = UNKNWON_FIELD;
+        this.distance = Integer.MAX_VALUE;
+        this.direction = null;
     }
 }

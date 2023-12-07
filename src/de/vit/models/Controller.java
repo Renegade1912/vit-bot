@@ -185,7 +185,12 @@ public class Controller {
         // On Sheet
         if (cellType == Cell.SHEET) {
             // toDo: we know that we are on a sheet and dont know if our form is under it, we need to check if it is ours
-
+            if (currentField.getPlayerId() == -1 || currentField.getFormNumber() == -1) {
+                // we dont know if our form is under it
+                action.take();
+                System.out.println("Versuche Papier zu nehmen.");
+                return action;
+            }
         }
 
         // On Form

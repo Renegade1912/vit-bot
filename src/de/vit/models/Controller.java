@@ -142,6 +142,9 @@ public class Controller {
                 System.exit(0);
         }
 
+        // Update current cell type
+        atlas.setFieldTypeByDirection(Direction.SELF, roundInfo.getCellCurrent());
+
         // Bind neighbour cells to AtlasFields
         atlas.setFieldTypeByDirection(Direction.NORTH, roundInfo.getCellNorth());
         atlas.setFieldTypeByDirection(Direction.EAST, roundInfo.getCellEast());

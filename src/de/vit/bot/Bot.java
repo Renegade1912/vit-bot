@@ -47,6 +47,7 @@ public class Bot implements IBot {
     public void onGameEnd(GameEndInfo gameEndInfo) {
         Controller.atlas.printAtlasMap();
         System.out.println("Spiel zuende!");
+        System.out.println("Wir waren Spieler " + Controller.getPlayerId() + "!");
         System.out.println(gameEndInfo.getWinner() == Controller.getPlayerId() ? "Wir haben gewonnen!" : "Wir haben verloren!");
         System.out.println("Das Spiel dauerte " + gameEndInfo.getRound() + " Runden.");
         System.exit(0);

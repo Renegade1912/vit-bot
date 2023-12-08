@@ -57,7 +57,7 @@ public class AtlasField {
     }
 
     public boolean isOwnFormField() {
-        return type == Cell.FORM && playerId == Bot.Controller.getPlayerId();
+        return (type == Cell.FORM || type == Cell.SHEET) && playerId == Bot.Controller.getPlayerId() && formNumber != -1;
     }
 
     public Direction getDirection() {
@@ -78,7 +78,7 @@ public class AtlasField {
 
     @Override
     public String toString() {
-        String result = " W ";
+        String result = " U ";
         switch (type) {
             case Cell.FLOOR:
                 result = "   ";
@@ -109,6 +109,6 @@ public class AtlasField {
         this.playerId = -1;
         this.type = UNKNWON_FIELD;
         this.distance = Integer.MAX_VALUE;
-        this.direction = null;
+        // this.direction = null;
     }
 }

@@ -13,11 +13,9 @@ import java.util.Queue;
 
 /*
     toDo:
-    - Check if we are on a sheet and our form is under it
-    - Check if our form has moved
     - Update algo to check only every 2 lines
+    - Check if our form has moved
     - implement player radar
-    - find a way to identify player start fields
 */
 
 public class Controller {
@@ -208,12 +206,12 @@ public class Controller {
                 if (availableSheets > 0) {
                     // can place sheet
                     // 30 percentage chance
-                    if (Math.random() > 0.7) {
+                    // if (Math.random() > 0.7) {
                         action.put();
                         lastActionWasSheet = true;
                         System.out.println("Versuche Papier zu platzieren.");
                         return action;
-                    }
+                    // }
                 }
 
                 if (currentLevel >= 4) {
@@ -319,11 +317,9 @@ public class Controller {
 
         Direction tmpDirection = null;
         for (AtlasField neighbor : shuffledNeighbors) {
-            System.out.println(neighbor.getType());
             if (neighbor.getType() == Cell.FLOOR) {
                 try {
                     tmpDirection = atlas.getDirectionToFieldFromCurrent(neighbor);
-                    System.out.println("Found free direction: " + tmpDirection);
                     break;
                 } catch (UnexpectedException e) {
                     throw new RuntimeException(e);

@@ -123,31 +123,13 @@ public class Atlas {
         }
     }
 
-    public boolean isMapFullyKnown() {
-        for (AtlasField[] field : fields) {
-            for (AtlasField atlasField : field) {
-                // get neighbor fields
-                LinkedList<AtlasField> neighbors = getNeighborsFrom(atlasField.getX(), atlasField.getY());
-
-                // check if all neighbors are explored
-                for (AtlasField neighbor : neighbors) {
-                    if (neighbor.getType() == AtlasField.UNKNWON_FIELD) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
     public AtlasField getNextExplorableField() throws NullPointerException {
         int closestDistance = Integer.MAX_VALUE;
         AtlasField closestField = null;
 
         for (AtlasField[] field : fields) {
             for (AtlasField atlasField : field) {
-                if (atlasField.getType() == Cell.WALL || atlasField.getType() == AtlasField.UNKNWON_FIELD) {
+                if (atlasField.getDirection() == null) {
                     continue;
                 }
 
@@ -256,8 +238,8 @@ public class Atlas {
 
         // reset form number and player id if type is not Cell.FORM, Cell.SHEET or Cell.FINISH
         if (type != Cell.SHEET && type != Cell.FINISH && type != Cell.FORM) {
-            field.setPlayerId(0);
-            field.setFormNumber(0);
+            field.setPlayerId(-1);
+            field.setFormNumber(-1);
         }
 
         field.setType(type);
@@ -315,7 +297,7 @@ public class Atlas {
     public void resetExploredForRadius(int radius) {
         for (AtlasField[] field : fields) {
             for (AtlasField atlasField : field) {
-                if (atlasField.getDistance() > radius) {
+                if (atlasField.getDistance() < radius && atlasField.getType() != Cell.WALL) {
                     atlasField.resetFormExplored();
                 }
             }

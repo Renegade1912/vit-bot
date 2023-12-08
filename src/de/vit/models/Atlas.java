@@ -159,7 +159,8 @@ public class Atlas {
                     if (neighbor.getType() == AtlasField.UNKNWON_FIELD) {
                         // check if neighbor is closer than current closest
                         int distance = atlasField.getDistance();
-                        if (distance < closestDistance) {
+
+                        if (distance < closestDistance  || (distance == closestDistance && Math.random() < 0.5)) {
                             closestDistance = distance;
                             closestField = atlasField;
                         }

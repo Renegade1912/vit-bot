@@ -297,7 +297,7 @@ public class Atlas {
     public void resetExploredForRadius(int radius) {
         for (AtlasField[] field : fields) {
             for (AtlasField atlasField : field) {
-                if (atlasField.getDistance() < radius && atlasField.getType() != Cell.WALL) {
+                if (atlasField.getDistance() < radius && atlasField.getType() != Cell.WALL && atlasField.getType() != Cell.FINISH) {
                     atlasField.resetFormExplored();
                 }
             }
